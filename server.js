@@ -14,13 +14,17 @@ wss.on('connection', (ws) => {
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
+      console.log('Mensagem recebida da overlay:', data); // Debug: mostra o que a overlay enviou
       if (data.action === 'join' && data.channel) {
         const chan = data.channel.toLowerCase();
         if (!joinedChannels.has(chan)) {
+          console.log(`Tentando join no canal: ${chan}`); // Debug: antes do join
           client.join(chan).then(() => {
             joinedChannels.add(chan);
             console.log(`✅ Joined canal: ${chan}`);
           }).catch(err => console.error(`Erro ao join ${chan}:`, err));
+        } else {
+          console.log(`Canal ${chan} já joined. Ignorando.`); // Debug: duplicata
         }
       }
     } catch (err) {
@@ -44,6 +48,7 @@ function broadcast(data) {
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(data));
+      console.log('Broadcast enviado:', data); // Debug: confirma envio
     }
   });
 }
@@ -60,13 +65,17 @@ const client = new tmi.Client({
     reconnectDecay: 1.5
   },
   identity: {
-    username: 'lc_another', // Certifique-se de que a conta está ativa
+    username: 'xyzgx', // Certifique-se de que a conta está ativa
     password: 'oauth:o731um0ljm4od6av2hp0ohoa1t8v32' // Cole o novo token aqui
   },
-  channels: [icarolinaporto] // Joins dinâmicos
+  channels: ['icarolinaporto'] // Corrigi: aspas no nome do canal
 });
 
-client.connect().catch(console.error);
+client.connect().then(() => {
+  console.log('✅ Conectado à Twitch com sucesso!'); // Debug: confirma conexão inicial
+}).catch(err => {
+  console.error('Erro ao conectar à Twitch:', err); // Debug: erro na conexão
+});
 
 client.on('disconnected', (reason) => {
   console.log(`❌ Disconnected da Twitch: ${reason}. Reconectando automaticamente...`);
@@ -76,6 +85,7 @@ client.on('reconnect', () => {
   console.log('🔄 Reconectando à Twitch...');
   // Re-join todos os canais ao reconectar
   joinedChannels.forEach(chan => {
+    console.log(`Tentando re-join no canal: ${chan}`); // Debug: re-join
     client.join(chan).catch(err => console.error(`Erro re-join ${chan}:`, err));
   });
 });
@@ -85,7 +95,10 @@ client.on('message', (channel, tags, message, self) => {
   console.log(`Mensagem no ${channel} de ${tags.username}: ${message}`);
   console.log('Badges:', tags.badges);
   const isMod = tags.mod || tags.badges?.broadcaster === '1';
-  if (!isMod) return;
+  if (!isMod) {
+    console.log('Ignorando mensagem - não é mod/streamer'); // Debug: restrição
+    return;
+  }
   console.log('✅ É mod/streamer! Enviando broadcast.');
   broadcast({ user: tags['display-name'], message });
 });
