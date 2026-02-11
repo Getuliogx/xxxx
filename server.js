@@ -1,6 +1,5 @@
 const tmi = require('tmi.js');
 const WebSocket = require('ws');
-
 const joinedChannels = new Set(); // Armazena canais joined para evitar duplicatas
 
 /* WebSocket Server */
@@ -53,17 +52,18 @@ function broadcast(data) {
 const client = new tmi.Client({
   options: { debug: true },
   connection: {
-    reconnect: true, // Reconexão automática
-    maxReconnectAttempts: Infinity, // Tentativas ilimitadas
-    reconnectInterval: 1000, // Inicia em 1s
-    maxReconnectInterval: 30000, // Máx 30s
-    reconnectDecay: 1.5 // Exponential backoff
+    secure: true, // Adicionado para conexões seguras
+    reconnect: true,
+    maxReconnectAttempts: Infinity,
+    reconnectInterval: 1000,
+    maxReconnectInterval: 30000,
+    reconnectDecay: 1.5
   },
   identity: {
-    username: 'xyzgx',
-    password: 'oauth:itx0xlse3oyv9op04ha8xpadi3yfua' // Seu token
+    username: 'xyzgx', // Certifique-se de que a conta está ativa
+    password: 'oauth:itx0xlse3oyv9op04ha8xpadi3yfua' // Cole o novo token aqui
   },
-  channels: [] // Inicie vazio; joins dinâmicos via WS
+  channels: [] // Joins dinâmicos
 });
 
 client.connect().catch(console.error);
@@ -82,16 +82,12 @@ client.on('reconnect', () => {
 
 client.on('message', (channel, tags, message, self) => {
   if (self) return;
-
   console.log(`Mensagem no ${channel} de ${tags.username}: ${message}`);
   console.log('Badges:', tags.badges);
-
   const isMod = tags.mod || tags.badges?.broadcaster === '1';
   if (!isMod) return;
-
   console.log('✅ É mod/streamer! Enviando broadcast.');
   broadcast({ user: tags['display-name'], message });
 });
-
 
 console.log('Servidor rodando na porta 8080');
