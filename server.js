@@ -61,7 +61,7 @@ const client = new tmi.Client({
   },
   identity: {
     username: 'xyzgx',
-    password: 'oauth:i4tdm2oae82r428ztkr85ar1oqlku4' // Seu token
+    password: 'oauth:itx0xlse3oyv9op04ha8xpadi3yfua' // Seu token
   },
   channels: [] // Inicie vazio; joins dinâmicos via WS
 });
@@ -92,5 +92,6 @@ client.on('message', (channel, tags, message, self) => {
   console.log('✅ É mod/streamer! Enviando broadcast.');
   broadcast({ user: tags['display-name'], message });
 });
+
 
 console.log('Servidor rodando na porta 8080');
