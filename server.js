@@ -66,7 +66,7 @@ const client = new tmi.Client({
   },
   identity: {
     username: 'xyzgx', // Certifique-se de que a conta está ativa
-    password: 'oauth:o731um0ljm4od6av2hp0ohoa1t8v32' // Cole o novo token aqui
+    password: 'oauth:itx0xlse3oyv9op04ha8xpadi3yfua' // Cole o novo token aqui
   },
   channels: ['icarolinaporto'] // Corrigi: aspas no nome do canal
 });
