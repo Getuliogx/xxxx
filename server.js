@@ -45,10 +45,13 @@ const interval = setInterval(() => {
 wss.on('close', () => clearInterval(interval));
 
 function broadcast(data) {
+  console.log('Preparando broadcast:', data); // Debug: antes de enviar
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(JSON.stringify(data));
-      console.log('Broadcast enviado:', data); // Debug: confirma envio
+      console.log('Broadcast enviado para cliente'); // Debug: confirma envio
+    } else {
+      console.log('Cliente não aberto - ignorando'); // Debug: cliente desconectado
     }
   });
 }
@@ -57,7 +60,7 @@ function broadcast(data) {
 const client = new tmi.Client({
   options: { debug: true },
   connection: {
-    secure: true, // Adicionado para conexões seguras
+    secure: true,
     reconnect: true,
     maxReconnectAttempts: Infinity,
     reconnectInterval: 1000,
@@ -65,17 +68,13 @@ const client = new tmi.Client({
     reconnectDecay: 1.5
   },
   identity: {
-    username: 'xyzgx', // Certifique-se de que a conta está ativa
-    password: 'oauth:itx0xlse3oyv9op04ha8xpadi3yfua' // Cole o novo token aqui
+    username: 'xyzgx',
+    password: 'o731um0ljm4od6av2hp0ohoa1t8v32' // Novo token
   },
-  channels: ['icarolinaporto'] // Corrigi: aspas no nome do canal
+  channels: ['icarolinaporto'] // Fixo pra join auto
 });
 
-client.connect().then(() => {
-  console.log('✅ Conectado à Twitch com sucesso!'); // Debug: confirma conexão inicial
-}).catch(err => {
-  console.error('Erro ao conectar à Twitch:', err); // Debug: erro na conexão
-});
+client.connect().catch(console.error);
 
 client.on('disconnected', (reason) => {
   console.log(`❌ Disconnected da Twitch: ${reason}. Reconectando automaticamente...`);
@@ -83,20 +82,18 @@ client.on('disconnected', (reason) => {
 
 client.on('reconnect', () => {
   console.log('🔄 Reconectando à Twitch...');
-  // Re-join todos os canais ao reconectar
   joinedChannels.forEach(chan => {
-    console.log(`Tentando re-join no canal: ${chan}`); // Debug: re-join
     client.join(chan).catch(err => console.error(`Erro re-join ${chan}:`, err));
   });
 });
 
 client.on('message', (channel, tags, message, self) => {
   if (self) return;
-  console.log(`Mensagem no ${channel} de ${tags.username}: ${message}`);
-  console.log('Badges:', tags.badges);
+  console.log(`Mensagem no ${channel} de ${tags.username}: ${message}`); // Debug: mensagem recebida
+  console.log('Badges:', tags.badges); // Debug: badges
   const isMod = tags.mod || tags.badges?.broadcaster === '1';
   if (!isMod) {
-    console.log('Ignorando mensagem - não é mod/streamer'); // Debug: restrição
+    console.log('Ignorando - não é mod/streamer'); // Debug: restrição
     return;
   }
   console.log('✅ É mod/streamer! Enviando broadcast.');
