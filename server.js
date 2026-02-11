@@ -60,10 +60,10 @@ const client = new tmi.Client({
     reconnectDecay: 1.5
   },
   identity: {
-    username: 'xyzgx', // Certifique-se de que a conta está ativa
-    password: 'oauth:itx0xlse3oyv9op04ha8xpadi3yfua' // Cole o novo token aqui
+    username: 'lc_another', // Certifique-se de que a conta está ativa
+    password: 'oauth:o731um0ljm4od6av2hp0ohoa1t8v32' // Cole o novo token aqui
   },
-  channels: [] // Joins dinâmicos
+  channels: [icarolinaporto] // Joins dinâmicos
 });
 
 client.connect().catch(console.error);
